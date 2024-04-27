@@ -11,3 +11,4 @@ end
 main()
 ```
 
+run: `cargo run example/hello_world.lv8`
