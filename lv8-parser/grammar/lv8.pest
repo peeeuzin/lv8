@@ -1,0 +1,111 @@
+program = _{ SOI ~ chunk ~ EOI }
+
+chunk = {
+    block
+}
+
+block = {
+    stmt* ~ return_statement?
+}
+
+stmt = {
+  
+  | assign
+  | function_def
+  | function_call
+}
+
+stmt_or_expr = _{ stmt | expr }
+
+var_list = {
+    (namespace | ident) ~ ("," ~ (namespace | ident))*
+}
+
+assign = {
+    var_list ~ "=" ~ stmt_or_expr
+}
+
+expr = {
+    null
+  | undefined
+  | boolean
+  | float
+  | integer
+  | string
+  | object
+  | array
+  | ident
+}
+
+name_list = {
+    ident ~ ("," ~ ident)*
+}
+
+return_statement = {
+    "break"
+  | "continue"
+  | ("return" ~ expr)
+}
+
+function_call = {
+    (namespace ~ "(" ~ (stmt_or_expr ~ ("," ~ stmt_or_expr)*)? ~ ")")
+}
+
+function_def = {
+    "fun" ~ ident ~ "(" ~ (name_list)? ~ ")" ~ "do" ~ block ~ "end"
+}
+
+namespace = {
+    ident ~ ("." ~ ident?)*
+}
+
+// values
+null      =  { "null" }
+undefined =  { "undefined" }
+boolean   =  { "false" | "true" }
+string    = ${ "\"" ~ inner ~ "\"" }
+inner     = @{ char* }
+char      =  {
+    !("\"" | "\\") ~ ANY
+  | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+  | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+float     = @{
+    "-"? ~ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT+ ~ (("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+integer   = @{
+    "-"? ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+}
+object    =  {
+    "{" ~ "}"
+  | "{" ~ pair ~ ("," ~ pair)* ~ "}"
+}
+pair      =  { (string | ident) ~ ":" ~ value }
+array     =  {
+    "[" ~ "]"
+  | "[" ~ value ~ ("," ~ value)* ~ "]"
+}
+ident     = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+value     = _{ object | array | string | float | integer | boolean | null | ident }
+
+// math_op  = { add | subtract | multiply | divide }
+// add      = { "+" }
+// subtract = { "-" }
+// multiply = { "*" }
+// divide   = { "/" }
+
+// logic_op = { and | or }
+// and      = { "and" | "&&" }
+// or       = { "or" | "||" }
+// not      = { "not" | "!" }
+
+// compare_op  = { greather | greather_eq | equal | not_equal | less | less_eq }
+// greather    = { ">" }
+// greather_eq = { ">=" }
+// equal       = { "is" | "==" }
+// not_equal   = { "~=" | "!=" }
+// less        = { "<" }
+// less_eq     = { "=<" }
+
+WHITESPACE = _{ " " | "\t" | "\n" }
+COMMENT    = _{ "#" ~ (!"\n" ~ ANY)* }
