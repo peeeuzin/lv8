@@ -3,7 +3,7 @@ A homemade programming language made in Rust, design to be useless
 
 # Example
 ## Hello World
-```
+```lv8
 fun main() do
   print("Hello, World!")
 end
@@ -11,4 +11,4 @@ end
 main()
 ```
 
-run: `cargo run example/hello_world.lv8`
+run: `cargo run example/hello_world.lv`

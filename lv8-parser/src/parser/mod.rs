@@ -1,11 +1,14 @@
-mod error;
 mod expression;
 mod statement;
 
 use std::collections::HashMap;
 
-use error::{GrammarError, Result};
 use pest::{iterators::Pair, Parser};
+
+use crate::{
+    error::{GrammarError, Result},
+    Either,
+};
 
 #[derive(pest_derive::Parser)]
 #[grammar = "grammar/lv8.pest"]
@@ -20,15 +23,9 @@ pub enum ASTNode {
 pub struct Block(pub Vec<Statement>, pub ReturnStatement);
 
 #[derive(Clone, Debug)]
-pub enum Either<L, R> {
-    Left(L),
-    Right(R),
-}
-
-#[derive(Clone, Debug)]
 pub enum Statement {
     Assignment {
-        left: Vec<Namespace>,
+        left: Vec<String>,
         right: Either<Expression, Box<Statement>>,
     },
     FunctionDefinition {
@@ -37,7 +34,7 @@ pub enum Statement {
         body: Block,
     },
     FunctionCall {
-        name: Namespace,
+        name: String,
         arguments: Vec<Either<Expression, Statement>>,
     },
 }
@@ -47,16 +44,33 @@ pub enum Expression {
     Null,
     Undefined,
     Boolean(bool),
-    Float(f64),
-    Integer(i64),
+    Number(Either<i64, f64>),
     String(String),
     Object(HashMap<String, Expression>),
     Array(Vec<Expression>),
     Identifier(String),
+    MathExpression(MathExpression),
 }
 
 #[derive(Clone, Debug)]
-pub struct Namespace(pub Vec<String>);
+pub enum MathExpression {
+    Number(Either<i64, f64>),
+    Operation {
+        left: Box<Expression>,
+        operation: MathOperation,
+        right: Box<Expression>,
+    },
+}
+
+#[derive(Clone, Debug)]
+pub enum MathOperation {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulus,
+    Exponentiation,
+}
 
 #[derive(Clone, Debug)]
 pub enum ReturnStatement {
@@ -76,25 +90,6 @@ pub fn parse(input: &str) -> Result<ASTNode> {
     Ok(ASTNode::Block(parse_block(
         pairs.next().unwrap().into_inner().next().unwrap(),
     )?))
-}
-
-fn parse_namespace(pair: Pair<Rule>) -> Namespace {
-    let mut namespace = Vec::new();
-
-    match pair.as_rule() {
-        Rule::namespace => {
-            let pair = pair.into_inner();
-
-            for pair in pair {
-                namespace.push(pair.as_str().to_string());
-            }
-        }
-        Rule::ident => namespace.push(pair.as_str().to_string()),
-
-        _ => unreachable!("Unknown rule: {:?}", pair.as_rule()),
-    }
-
-    Namespace(namespace)
 }
 
 fn parse_block(pair: Pair<Rule>) -> Result<Block> {

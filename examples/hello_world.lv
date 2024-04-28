@@ -1,11 +1,5 @@
-fun another_func(param) do
-  print(param)
-end
-
 fun main() do
-  a = "Hello, World!"
-
-  another_func(a)
+  print("Hello, World!")
 end
 
 main()

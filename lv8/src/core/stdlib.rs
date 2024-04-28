@@ -1,20 +1,16 @@
 use std::collections::HashMap;
 
-use super::{scope::VariableType, PrimitiveTypes};
+use super::{scope::ValueType, PrimitiveTypes};
 
-pub fn build_standard_library() -> HashMap<String, VariableType> {
+pub fn build_standard_library() -> HashMap<String, ValueType> {
     let mut standard_library = HashMap::new();
 
-    standard_library.insert("print".to_string(), VariableType::InternalFunction(print));
-    standard_library.insert(
-        "mark.zuck".to_string(),
-        VariableType::Variable(PrimitiveTypes::String("Mark Zuckerberg".to_string())),
-    );
+    standard_library.insert("print".to_string(), ValueType::InternalFunction(print));
 
     standard_library
 }
 
-fn print(args: Vec<VariableType>) -> VariableType {
+fn print(args: Vec<ValueType>) -> ValueType {
     let args = args
         .into_iter()
         .map(|x| x.to_string())
@@ -23,5 +19,5 @@ fn print(args: Vec<VariableType>) -> VariableType {
 
     println!("{}", args);
 
-    VariableType::Variable(PrimitiveTypes::Undefined)
+    ValueType::Variable(PrimitiveTypes::Undefined)
 }

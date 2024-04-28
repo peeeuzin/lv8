@@ -1,5 +1,5 @@
 use super::{
-    scope::{self, Scope, VariableType},
+    scope::{self, Scope, ValueType},
     statement,
 };
 use lv8_parser::Block as BlockAST;
@@ -15,7 +15,7 @@ impl Block {
         Self { block, scope }
     }
 
-    pub fn return_type(&self) -> VariableType {
+    pub fn return_type(&self) -> ValueType {
         let return_statement = &self.block.1;
 
         match return_statement {
@@ -23,15 +23,15 @@ impl Block {
                 scope::expression_to_value(&self.scope, expression)
             }
             lv8_parser::ReturnStatement::Break => {
-                VariableType::Variable(super::PrimitiveTypes::Undefined)
+                ValueType::Variable(super::PrimitiveTypes::Undefined)
             }
             lv8_parser::ReturnStatement::Continue => {
-                VariableType::Variable(super::PrimitiveTypes::Undefined)
+                ValueType::Variable(super::PrimitiveTypes::Undefined)
             }
         }
     }
 
-    pub fn call(mut self) -> VariableType {
+    pub fn call(mut self) -> ValueType {
         let statements = &self.block.0;
 
         for statement in statements {

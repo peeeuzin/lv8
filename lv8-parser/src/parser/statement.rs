@@ -2,7 +2,9 @@ use pest::iterators::Pair;
 
 use crate::Either;
 
-use super::{error::Result, Namespace, Rule, Statement};
+use super::{Rule, Statement};
+
+use crate::error::Result;
 
 pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
     match pair.as_rule() {
@@ -12,10 +14,10 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             let var_list = inner.next().unwrap();
             let expr = inner.next().unwrap();
 
-            let mut left: Vec<Namespace> = vec![];
+            let mut left: Vec<String> = vec![];
 
             for var in var_list.into_inner() {
-                left.push(super::parse_namespace(var));
+                left.push(var.as_str().to_string());
             }
 
             let right = match expr.as_rule() {
@@ -33,8 +35,7 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             let mut inner = pair.into_inner();
 
             let name = inner.next().unwrap();
-
-            let name = super::parse_namespace(name);
+            let name = name.as_str().to_string();
 
             let mut args = Vec::new();
 

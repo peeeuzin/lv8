@@ -8,9 +8,3 @@ impl GrammarError {
         Self(msg.to_string())
     }
 }
-
-impl std::fmt::Display for GrammarError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}

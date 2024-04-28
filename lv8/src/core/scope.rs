@@ -5,18 +5,18 @@ use lv8_parser::Expression as ExpressionAST;
 use super::{expression::Expression, function::Function, PrimitiveTypes};
 
 #[derive(Clone, Debug)]
-pub enum VariableType {
+pub enum ValueType {
     Function(Function),
     Variable(PrimitiveTypes),
-    InternalFunction(fn(Vec<VariableType>) -> VariableType),
+    InternalFunction(fn(Vec<ValueType>) -> ValueType),
 }
 
-impl ToString for VariableType {
+impl ToString for ValueType {
     fn to_string(&self) -> String {
         match self {
-            VariableType::Function(function) => function.to_string(),
-            VariableType::Variable(value) => value.to_string(),
-            VariableType::InternalFunction(f) => {
+            ValueType::Function(function) => function.to_string(),
+            ValueType::Variable(value) => value.to_string(),
+            ValueType::InternalFunction(f) => {
                 format!("<<internal function {:?}>>", &f as *const _).to_string()
             }
         }
@@ -25,7 +25,7 @@ impl ToString for VariableType {
 
 #[derive(Clone, Debug)]
 pub struct Scope {
-    pub variables: HashMap<String, VariableType>,
+    pub variables: HashMap<String, ValueType>,
 }
 
 impl Scope {
@@ -35,23 +35,24 @@ impl Scope {
         }
     }
 
-    pub fn set_variable(&mut self, name: String, variable: VariableType) {
+    pub fn set_variable(&mut self, name: String, variable: ValueType) {
         self.variables.insert(name, variable);
     }
 
-    pub fn get_variable(&self, name: &str) -> Option<&VariableType> {
+    pub fn get_variable(&self, name: &str) -> Option<&ValueType> {
         self.variables.get(name)
     }
 
-    pub fn extend_variables(&mut self, variables: HashMap<String, VariableType>) {
+    pub fn extend_variables(&mut self, variables: HashMap<String, ValueType>) {
         self.variables.extend(variables);
     }
 }
 
-pub fn expression_to_value(scope: &Scope, expression: &ExpressionAST) -> VariableType {
+pub fn expression_to_value(scope: &Scope, expression: &ExpressionAST) -> ValueType {
     let value = match expression {
         ExpressionAST::Identifier(ref identifier) => scope.get_variable(identifier).cloned(),
-        _ => Some(VariableType::Variable(Expression::parse_expression(
+        _ => Some(ValueType::Variable(Expression::parse_expression(
+            scope,
             expression.clone(),
         ))),
     };

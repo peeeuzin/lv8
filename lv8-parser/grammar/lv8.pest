@@ -18,7 +18,7 @@ stmt = {
 stmt_or_expr = _{ stmt | expr }
 
 var_list = {
-    (namespace | ident) ~ ("," ~ (namespace | ident))*
+    ident ~ ("," ~ ident)*
 }
 
 assign = {
@@ -26,7 +26,8 @@ assign = {
 }
 
 expr = {
-    null
+    math_expr
+  | null
   | undefined
   | boolean
   | float
@@ -48,15 +49,11 @@ return_statement = {
 }
 
 function_call = {
-    (namespace ~ "(" ~ (stmt_or_expr ~ ("," ~ stmt_or_expr)*)? ~ ")")
+    (ident ~ "(" ~ (stmt_or_expr ~ ("," ~ stmt_or_expr)*)? ~ ")")
 }
 
 function_def = {
     "fun" ~ ident ~ "(" ~ (name_list)? ~ ")" ~ "do" ~ block ~ "end"
-}
-
-namespace = {
-    ident ~ ("." ~ ident?)*
 }
 
 // values
@@ -76,6 +73,7 @@ float     = @{
 integer   = @{
     "-"? ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
 }
+number    =  { float | integer }
 object    =  {
     "{" ~ "}"
   | "{" ~ pair ~ ("," ~ pair)* ~ "}"
@@ -88,11 +86,15 @@ array     =  {
 ident     = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 value     = _{ object | array | string | float | integer | boolean | null | ident }
 
-// math_op  = { add | subtract | multiply | divide }
-// add      = { "+" }
-// subtract = { "-" }
-// multiply = { "*" }
-// divide   = { "/" }
+math_expr      =  { (("(" ~ math_expr ~ ")") | number | ident) ~ (math_op ~ (("(" ~ math_expr ~ ")") | number | ident))* }
+math_op        = _{ modulus | exponentiation | floor_div | add | subtract | multiply | divide }
+add            =  { "+" }
+subtract       =  { "-" }
+multiply       =  { "*" }
+divide         =  { "/" }
+modulus        =  { "%" }
+exponentiation =  { "**" }
+floor_div      =  { "//" }
 
 // logic_op = { and | or }
 // and      = { "and" | "&&" }

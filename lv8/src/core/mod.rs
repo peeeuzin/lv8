@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use lv8_parser::ASTNode;
+use lv8_parser::{ASTNode, Either};
 
 mod block;
 mod expression;
@@ -14,8 +14,7 @@ pub enum PrimitiveTypes {
     Null,
     Undefined,
     Boolean(bool),
-    Float(f64),
-    Integer(i64),
+    Number(Either<i64, f64>),
     String(String),
     Array(Vec<PrimitiveTypes>),
     Object(HashMap<String, PrimitiveTypes>),
@@ -28,8 +27,7 @@ impl ToString for PrimitiveTypes {
             PrimitiveTypes::Null => "null".to_string(),
             PrimitiveTypes::Undefined => "undefined".to_string(),
             PrimitiveTypes::Boolean(value) => value.to_string(),
-            PrimitiveTypes::Float(value) => value.to_string(),
-            PrimitiveTypes::Integer(value) => value.to_string(),
+            PrimitiveTypes::Number(value) => value.to_string(),
             PrimitiveTypes::String(value) => value.to_string(),
             PrimitiveTypes::Array(value) => {
                 let mut array = Vec::new();

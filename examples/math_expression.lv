@@ -1,0 +1,5 @@
+fun calculate_math(a, b, c) do
+    return a * (b + c)
+end
+
+print("2 * (3 + 4) =", calculate_math(2, 3, 4))

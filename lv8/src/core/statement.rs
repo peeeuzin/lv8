@@ -2,10 +2,10 @@ use lv8_parser::{Either, Statement as StatementAST};
 
 use super::{
     function,
-    scope::{self, Scope, VariableType},
+    scope::{self, Scope, ValueType},
 };
 
-pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> VariableType {
+pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
     match statement {
         StatementAST::Assignment { left, right } => {
             let value = match right {
@@ -13,10 +13,8 @@ pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> VariableTyp
                 Either::Right(statement) => run_statement(scope, statement),
             };
 
-            for namespace in left {
-                let name = namespace.0.join(".");
-
-                scope.set_variable(name, value.clone());
+            for variables in left {
+                scope.set_variable(variables.to_string(), value.clone());
             }
 
             value
