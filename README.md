@@ -20,13 +20,6 @@ This language is not meant to be used in production, it is just a fun project to
 # 🔗 Contributing
 If you would like to contribute to this project, feel free to fork the repository and make a pull request. I am open to any suggestions or improvements.
 
-# ⬇️ Installation
-Currently, the only way to install the language is from crates.io. You can install it using cargo.
-## Cargo
-```bash
-cargo install lv8
-```
-
 # Examples
 ## 👋 Hello World
 ```lv8
@@ -49,6 +42,3 @@ print("2 * (3 + 4) =", calculate_math(2, 3, 4))
 ```
 
 run: `cargo run examples/math_expression.lv`
-
-# 📜 License
-This project is licensed under the MIT License. For more information, please read the [LICENSE](LICENSE) file.

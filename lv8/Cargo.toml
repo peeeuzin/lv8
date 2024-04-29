@@ -1,5 +1,5 @@
 [package]
-name = "lv8-interpreter"
+name = "lv8"
 version = "0.1.0"
 edition = "2021"
 
