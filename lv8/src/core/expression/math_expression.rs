@@ -19,7 +19,7 @@ pub fn evaluate_math_expression(scope: &Scope, math_expression: MathExpression) 
 
             let right = match scope::expression_to_value(scope, &right) {
                 scope::ValueType::Variable(PrimitiveTypes::Number(value)) => value,
-                _ => unreachable!("unreachable!() in math_expression.rs, left"),
+                _ => unreachable!("unreachable!() in math_expression.rs, right"),
             };
 
             match operation {
@@ -35,7 +35,12 @@ pub fn evaluate_math_expression(scope: &Scope, math_expression: MathExpression) 
                     (Either::Right(left), Either::Right(right)) => {
                         PrimitiveTypes::Number(Either::Right(left.powf(right)))
                     }
-                    _ => unreachable!("unreachable!() in math_expression.rs, Exponentiation"),
+                    (Either::Left(left), Either::Right(right)) => {
+                        PrimitiveTypes::Number(Either::Left(left.pow(right as u32)))
+                    }
+                    (Either::Right(left), Either::Left(right)) => {
+                        PrimitiveTypes::Number(Either::Right(left.powf(right as f64)))
+                    }
                 },
             }
         }

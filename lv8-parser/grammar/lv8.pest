@@ -10,6 +10,7 @@ block = {
 
 stmt = {
   
+  | if_statement
   | assign
   | function_def
   | function_call
@@ -30,8 +31,7 @@ expr = {
   | null
   | undefined
   | boolean
-  | float
-  | integer
+  | number
   | string
   | object
   | array
@@ -45,7 +45,7 @@ name_list = {
 return_statement = {
     "break"
   | "continue"
-  | ("return" ~ expr)
+  | ("return" ~ expr?)
 }
 
 function_call = {
@@ -54,6 +54,10 @@ function_call = {
 
 function_def = {
     "fun" ~ ident ~ "(" ~ (name_list)? ~ ")" ~ "do" ~ block ~ "end"
+}
+
+if_statement = {
+    "if" ~ logic_expr ~ "do" ~ block ~ ("elseif" ~ logic_expr ~ "do" ~ block)* ~ ("else" ~ block)? ~ "end"
 }
 
 // values
@@ -86,7 +90,7 @@ array     =  {
 ident     = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 value     = _{ object | array | string | float | integer | boolean | null | ident }
 
-math_expr      =  { (("(" ~ math_expr ~ ")") | number | ident) ~ (math_op ~ (("(" ~ math_expr ~ ")") | number | ident))* }
+math_expr      =  { (("(" ~ math_expr ~ ")") | number | ident) ~ (math_op ~ (("(" ~ math_expr ~ ")") | number | ident))+ }
 math_op        = _{ modulus | exponentiation | floor_div | add | subtract | multiply | divide }
 add            =  { "+" }
 subtract       =  { "-" }
@@ -96,18 +100,20 @@ modulus        =  { "%" }
 exponentiation =  { "**" }
 floor_div      =  { "//" }
 
-// logic_op = { and | or }
-// and      = { "and" | "&&" }
-// or       = { "or" | "||" }
-// not      = { "not" | "!" }
+logic_expr = { (("(" ~ logic_expr ~ ")") | (not? ~ "(" ~ logic_expr ~ ")") | (not? ~ expr)) ~ ((logic_op | compare_op) ~ (("(" ~ logic_expr ~ ")") | (not? ~ "(" ~ logic_expr ~ ")") | (not? ~ expr)))* }
 
-// compare_op  = { greather | greather_eq | equal | not_equal | less | less_eq }
-// greather    = { ">" }
-// greather_eq = { ">=" }
-// equal       = { "is" | "==" }
-// not_equal   = { "~=" | "!=" }
-// less        = { "<" }
-// less_eq     = { "=<" }
+logic_op = _{ and | or }
+and      =  { "and" | "&&" }
+or       =  { "or" | "||" }
+not      =  { "not" | "!" }
+
+compare_op  = _{ greather | greather_eq | equal | not_equal | less | less_eq }
+greather    =  { ">" }
+greather_eq =  { ">=" }
+equal       =  { "is" | "==" }
+not_equal   =  { "~=" | "!=" | "isnt" | "is not" }
+less        =  { "<" }
+less_eq     =  { "=<" }
 
 WHITESPACE = _{ " " | "\t" | "\n" }
 COMMENT    = _{ "#" ~ (!"\n" ~ ANY)* }

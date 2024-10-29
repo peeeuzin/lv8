@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-
 use lv8_parser::{ASTNode, Either};
+use std::collections::BTreeMap;
+use std::fmt;
 
 mod block;
 mod expression;
@@ -9,7 +9,7 @@ mod scope;
 mod statement;
 mod stdlib;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum PrimitiveTypes {
     Null,
     Undefined,
@@ -17,18 +17,17 @@ pub enum PrimitiveTypes {
     Number(Either<i64, f64>),
     String(String),
     Array(Vec<PrimitiveTypes>),
-    Object(HashMap<String, PrimitiveTypes>),
-    Identifier(String),
+    Object(BTreeMap<String, PrimitiveTypes>),
 }
 
-impl ToString for PrimitiveTypes {
-    fn to_string(&self) -> String {
+impl fmt::Display for PrimitiveTypes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PrimitiveTypes::Null => "null".to_string(),
-            PrimitiveTypes::Undefined => "undefined".to_string(),
-            PrimitiveTypes::Boolean(value) => value.to_string(),
-            PrimitiveTypes::Number(value) => value.to_string(),
-            PrimitiveTypes::String(value) => value.to_string(),
+            PrimitiveTypes::Null => write!(f, "null"),
+            PrimitiveTypes::Undefined => write!(f, "undefined"),
+            PrimitiveTypes::Boolean(value) => write!(f, "{}", value),
+            PrimitiveTypes::Number(value) => write!(f, "{:?}", value),
+            PrimitiveTypes::String(value) => write!(f, "{}", value),
             PrimitiveTypes::Array(value) => {
                 let mut array = Vec::new();
 
@@ -36,18 +35,17 @@ impl ToString for PrimitiveTypes {
                     array.push(element.to_string());
                 }
 
-                format!("[{}]", array.join(", "))
+                write!(f, "[{}]", array.join(", "))
             }
             PrimitiveTypes::Object(value) => {
                 let mut object = Vec::new();
 
                 for (key, value) in value {
-                    object.push(format!("{}: {}", key, value.to_string()));
+                    object.push(format!("\"{}\": {}", key, value));
                 }
 
-                format!("{{{}}}", object.join(", "))
+                write!(f, "{{{}}}", object.join(", "))
             }
-            PrimitiveTypes::Identifier(value) => value.to_string(),
         }
     }
 }

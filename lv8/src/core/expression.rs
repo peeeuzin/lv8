@@ -1,8 +1,12 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
+mod comparison_expression;
+mod logic_expression;
 mod math_expression;
 
 use lv8_parser::Expression as ExpressionAST;
+
+pub use logic_expression::value_to_bool;
 
 use super::{scope::Scope, PrimitiveTypes};
 
@@ -26,7 +30,7 @@ impl Expression {
                 PrimitiveTypes::Array(array)
             }
             ExpressionAST::Object(value) => {
-                let mut object = HashMap::new();
+                let mut object = BTreeMap::new();
 
                 for (key, value) in value {
                     object.insert(key, Expression::parse_expression(scope, value));
@@ -34,10 +38,16 @@ impl Expression {
 
                 PrimitiveTypes::Object(object)
             }
-            ExpressionAST::Identifier(value) => PrimitiveTypes::Identifier(value),
+            ExpressionAST::Identifier(value) => PrimitiveTypes::String(value),
             ExpressionAST::MathExpression(value) => {
                 math_expression::evaluate_math_expression(scope, value)
             }
+            ExpressionAST::LogicExpression(value) => {
+                PrimitiveTypes::Boolean(logic_expression::evaluate_logic_expression(scope, value))
+            }
+            ExpressionAST::ComparisonExpression(value) => PrimitiveTypes::Boolean(
+                comparison_expression::evaluate_comparison_expression(scope, value),
+            ),
         }
     }
 }

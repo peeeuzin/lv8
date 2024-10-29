@@ -89,6 +89,46 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             })
         }
 
+        Rule::if_statement => {
+            let mut pairs = pair.into_inner();
+
+            let condition =
+                super::expression::parse(pairs.next().unwrap().into_inner().next().unwrap())?;
+
+            let body = super::parse_block(pairs.next().unwrap())?;
+
+            let mut else_if = Vec::new();
+            let mut else_body = None;
+
+            while let Some(pair) = pairs.next() {
+                match pair.as_rule() {
+                    // else if statement
+                    Rule::logic_expr => {
+                        let condition = super::expression::parse(pair.clone())?;
+                        let body = super::parse_block(pairs.next().unwrap())?;
+
+                        else_if.push((condition, body));
+                    }
+
+                    // else statement
+                    Rule::block => {
+                        let body = super::parse_block(pair)?;
+
+                        else_body = Some(body);
+                    }
+
+                    _ => unreachable!("unreachable!() in statement.rs, {:?}", pair.as_rule()),
+                }
+            }
+
+            Ok(Statement::If {
+                condition,
+                body,
+                else_if,
+                else_body,
+            })
+        }
+
         _ => unreachable!("unreachable!() in statement.rs, {:?}", pair.as_rule()),
     }
 }

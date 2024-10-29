@@ -1,7 +1,9 @@
 use pest::{iterators::Pair, pratt_parser::PrattParser};
 
-use super::{Expression, MathExpression, MathOperation, Rule};
-use crate::{error::Result, Either};
+use super::{
+    ComparisonExpression, ComparisonOperation, Expression, MathExpression, MathOperation, Rule,
+};
+use crate::{error::Result, Either, LogicExpression};
 
 lazy_static::lazy_static! {
     static ref MATH_PRATT_PARSER: PrattParser<Rule> = {
@@ -13,6 +15,27 @@ lazy_static::lazy_static! {
             .op(Op::infix(Rule::add, Left) | Op::infix(Rule::subtract, Left))
             .op(Op::infix(Rule::multiply, Left) | Op::infix(Rule::divide, Left) | Op::infix(Rule::modulus, Left))
             .op(Op::infix(Rule::exponentiation, Right))
+    };
+}
+
+lazy_static::lazy_static! {
+    static ref LOGIC_PRATT_PARSER: PrattParser<Rule> = {
+        use pest::pratt_parser::{Assoc::*, Op};
+        use super::super::Rule;
+
+        // Precedence is defined lowest to highest
+        PrattParser::new()
+        .op(
+        Op::infix(Rule::greather_eq, Left)
+        | Op::infix(Rule::less_eq, Left)
+        | Op::infix(Rule::greather, Left)
+        | Op::infix(Rule::less, Left)
+        | Op::infix(Rule::equal, Left)
+        | Op::infix(Rule::not_equal, Left)
+        | Op::infix(Rule::and, Left)
+        | Op::infix(Rule::or, Left)
+    )
+        .op(Op::prefix(Rule::not))
     };
 }
 
@@ -80,6 +103,8 @@ pub fn parse(pair: Pair<Rule>) -> Result<Expression> {
 
         Rule::math_expr => parse_math_expression(pair),
 
+        Rule::logic_expr => parse_logic_expression(pair),
+
         _ => unreachable!("unreachable!() in expression.rs, {:?}", pair.as_rule()),
     }
 }
@@ -107,6 +132,52 @@ fn parse_math_expression(pair: Pair<Rule>) -> Result<Expression> {
             };
 
             Ok(Expression::MathExpression(math_expr))
+        })
+        .parse(pairs)
+}
+
+fn parse_logic_expression(pair: Pair<Rule>) -> Result<Expression> {
+    let pairs = pair.into_inner();
+
+    LOGIC_PRATT_PARSER
+        .map_primary(parse)
+        .map_prefix(|_, right| {
+            let right = right?;
+
+            let logic_expr = LogicExpression::Not {
+                expr: Box::new(right),
+            };
+
+            Ok(Expression::LogicExpression(logic_expr))
+        })
+        .map_infix(|left, op, right| match op.as_rule() {
+            Rule::and => Ok(Expression::LogicExpression(LogicExpression::And {
+                left: Box::new(left?),
+                right: Box::new(right?),
+            })),
+            Rule::or => Ok(Expression::LogicExpression(LogicExpression::Or {
+                left: Box::new(left?),
+                right: Box::new(right?),
+            })),
+            _ => {
+                let op = match op.as_rule() {
+                    Rule::equal => ComparisonOperation::Equal,
+                    Rule::not_equal => ComparisonOperation::NotEqual,
+                    Rule::greather => ComparisonOperation::GreaterThan,
+                    Rule::less => ComparisonOperation::LessThan,
+                    Rule::greather_eq => ComparisonOperation::GreaterThanOrEqual,
+                    Rule::less_eq => ComparisonOperation::LessThanOrEqual,
+                    _ => unreachable!("unreachable!() in expression.rs, {:?}", op.as_rule()),
+                };
+
+                let comp_expr = ComparisonExpression {
+                    left: Box::new(left?),
+                    operation: op,
+                    right: Box::new(right?),
+                };
+
+                Ok(Expression::ComparisonExpression(comp_expr))
+            }
         })
         .parse(pairs)
 }

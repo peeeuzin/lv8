@@ -1,8 +1,11 @@
 use lv8_parser::{Either, Statement as StatementAST};
 
 use super::{
+    block::Block,
+    expression::value_to_bool,
     function,
     scope::{self, Scope, ValueType},
+    PrimitiveTypes,
 };
 
 pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
@@ -26,6 +29,32 @@ pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
         } => function::handle_function_definition(scope, name, parameters, body),
         StatementAST::FunctionCall { name, arguments } => {
             function::handle_function_call(scope, name, arguments)
+        }
+        StatementAST::If {
+            condition,
+            body,
+            else_if,
+            else_body,
+        } => {
+            let condition = scope::expression_to_value(scope, condition);
+
+            if value_to_bool(condition) {
+                Block::new(body.clone(), scope.clone()).call()
+            } else {
+                for (condition, block) in else_if {
+                    let condition = scope::expression_to_value(scope, condition);
+
+                    if value_to_bool(condition) {
+                        return Block::new(block.clone(), scope.clone()).call();
+                    }
+                }
+
+                if let Some(else_body) = else_body {
+                    Block::new(else_body.clone(), scope.clone()).call()
+                } else {
+                    ValueType::Variable(PrimitiveTypes::Undefined)
+                }
+            }
         }
     }
 }

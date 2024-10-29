@@ -37,6 +37,12 @@ pub enum Statement {
         name: String,
         arguments: Vec<Either<Expression, Statement>>,
     },
+    If {
+        condition: Expression,
+        body: Block,
+        else_if: Vec<(Expression, Block)>,
+        else_body: Option<Block>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -50,6 +56,8 @@ pub enum Expression {
     Array(Vec<Expression>),
     Identifier(String),
     MathExpression(MathExpression),
+    LogicExpression(LogicExpression),
+    ComparisonExpression(ComparisonExpression),
 }
 
 #[derive(Clone, Debug)]
@@ -70,6 +78,39 @@ pub enum MathOperation {
     Divide,
     Modulus,
     Exponentiation,
+}
+
+#[derive(Clone, Debug)]
+pub enum LogicExpression {
+    Not {
+        expr: Box<Expression>,
+    },
+    And {
+        left: Box<Expression>,
+        right: Box<Expression>,
+    },
+    Or {
+        left: Box<Expression>,
+        right: Box<Expression>,
+    },
+    Boolean(bool),
+}
+
+#[derive(Clone, Debug)]
+pub struct ComparisonExpression {
+    pub left: Box<Expression>,
+    pub operation: ComparisonOperation,
+    pub right: Box<Expression>,
+}
+
+#[derive(Clone, Debug)]
+pub enum ComparisonOperation {
+    Equal,
+    NotEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
 }
 
 #[derive(Clone, Debug)]

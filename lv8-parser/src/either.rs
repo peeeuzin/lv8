@@ -1,16 +1,16 @@
-use std::ops;
+use std::{fmt::Debug, ops};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, PartialOrd)]
 pub enum Either<L, R> {
     Left(L),
     Right(R),
 }
 
-impl ToString for Either<i64, f64> {
-    fn to_string(&self) -> String {
+impl<L: Debug, R: Debug> Debug for Either<L, R> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Either::Left(value) => value.to_string(),
-            Either::Right(value) => value.to_string(),
+            Either::Left(value) => write!(f, "{:?}", value),
+            Either::Right(value) => write!(f, "{:?}", value),
         }
     }
 }

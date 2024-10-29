@@ -8,7 +8,7 @@ LV8 (pronounced "levieight") is interpreted dynamically typed programming langua
 - [x] ~~Math expressions~~
 - [x] ~~Comments~~
 - [ ] Standard library (Currently only `print` function is available)
-- [ ] Flow control (if, else, while, for)
+- [-] Flow control (if, else, while, for)
 - [ ] Garbage collection
 - [ ] Error handling
 - [ ] Structs

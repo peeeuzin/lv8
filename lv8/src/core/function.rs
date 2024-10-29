@@ -1,4 +1,5 @@
 use lv8_parser::{Block as BlockAST, Either, Expression as ExpressionAST, Statement};
+use std::fmt;
 
 use super::{
     block::Block,
@@ -36,12 +37,6 @@ impl Function {
         }
 
         self.body.call()
-    }
-}
-
-impl ToString for Function {
-    fn to_string(&self) -> String {
-        format!("<<function {}>>", self.name)
     }
 }
 
@@ -87,4 +82,22 @@ pub fn handle_function_definition(
     scope.set_variable(name.to_string(), scope::ValueType::Function(function));
 
     scope::ValueType::Variable(PrimitiveTypes::Undefined)
+}
+
+impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<<function {}>>", self.name)
+    }
+}
+
+impl PartialEq for Function {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl PartialOrd for Function {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.name.partial_cmp(&other.name)
+    }
 }

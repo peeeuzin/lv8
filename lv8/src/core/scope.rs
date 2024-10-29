@@ -1,23 +1,24 @@
 use std::collections::HashMap;
+use std::fmt;
 
 use lv8_parser::Expression as ExpressionAST;
 
 use super::{expression::Expression, function::Function, PrimitiveTypes};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum ValueType {
     Function(Function),
     Variable(PrimitiveTypes),
     InternalFunction(fn(Vec<ValueType>) -> ValueType),
 }
 
-impl ToString for ValueType {
-    fn to_string(&self) -> String {
+impl fmt::Display for ValueType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ValueType::Function(function) => function.to_string(),
-            ValueType::Variable(value) => value.to_string(),
-            ValueType::InternalFunction(f) => {
-                format!("<<internal function {:?}>>", &f as *const _).to_string()
+            ValueType::Function(function) => write!(f, "{}", function),
+            ValueType::Variable(value) => write!(f, "{}", value),
+            ValueType::InternalFunction(func) => {
+                write!(f, "<<internal function {:?}>>", &func as *const _)
             }
         }
     }
