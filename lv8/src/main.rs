@@ -1,6 +1,7 @@
 mod core;
 mod error;
 mod read;
+mod repl;
 
 use clap::Parser;
 use core::Core;
@@ -8,37 +9,21 @@ use core::Core;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    path: String,
-
-    /// Show the execution time of the program
-    #[clap(long)]
-    debug: bool,
+    path: Option<String>,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let ast = read::read_file(&args.path);
-
-    let core = Core::new(ast);
-
-    if args.debug {
-        execute_with_debug(core)
+    if let Some(path) = args.path {
+        execute_file(&path);
     } else {
-        core.execute();
+        repl::run().unwrap();
     }
 }
 
-fn measure_execution_time<F: FnOnce() -> R, R>(f: F) -> (R, std::time::Duration) {
-    let start = std::time::Instant::now();
-    let result = f();
-    let end = std::time::Instant::now();
-
-    (result, end - start)
-}
-
-fn execute_with_debug(core: Core) {
-    let (_, duration) = measure_execution_time(|| core.execute());
-
-    println!("Took: {:?}", duration);
+fn execute_file(path: &str) {
+    let ast = read::read_file(path);
+    let core = Core::new();
+    core.execute(ast);
 }

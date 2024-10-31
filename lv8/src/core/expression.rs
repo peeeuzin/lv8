@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 
 mod comparison_expression;
 mod logic_expression;
@@ -13,7 +13,7 @@ use super::{scope::Scope, PrimitiveTypes};
 pub struct Expression;
 
 impl Expression {
-    pub fn parse_expression(scope: &Scope, ast: ExpressionAST) -> PrimitiveTypes {
+    pub fn parse_expression(scope: &Rc<RefCell<Scope>>, ast: ExpressionAST) -> PrimitiveTypes {
         match ast {
             ExpressionAST::Null => PrimitiveTypes::Null,
             ExpressionAST::Undefined => PrimitiveTypes::Undefined,

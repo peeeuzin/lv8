@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Write};
+use std::collections::HashMap;
 
 use super::{scope::ValueType, PrimitiveTypes};
 
@@ -8,6 +8,7 @@ pub fn build_standard_library() -> HashMap<String, ValueType> {
     standard_library.insert("printl".to_string(), ValueType::InternalFunction(printl));
     standard_library.insert("print".to_string(), ValueType::InternalFunction(print));
     standard_library.insert("input".to_string(), ValueType::InternalFunction(input));
+    standard_library.insert("inspect".to_string(), ValueType::InternalFunction(inspect));
 
     standard_library
 }
@@ -17,10 +18,9 @@ fn printl(args: Vec<ValueType>) -> ValueType {
         .into_iter()
         .map(|x| x.to_string())
         .collect::<Vec<String>>()
-        .join(" ")
-        + "\n";
+        .join(" ");
 
-    std::io::stdout().write_all(args.as_bytes()).unwrap();
+    println!("{}", args);
 
     ValueType::Variable(PrimitiveTypes::Undefined)
 }
@@ -32,7 +32,19 @@ fn print(args: Vec<ValueType>) -> ValueType {
         .collect::<Vec<String>>()
         .join(" ");
 
-    std::io::stdout().write_all(args.as_bytes()).unwrap();
+    print!("{}", args);
+
+    ValueType::Variable(PrimitiveTypes::Undefined)
+}
+
+fn inspect(args: Vec<ValueType>) -> ValueType {
+    let args = args
+        .into_iter()
+        .map(|x| format!("{:?}", x))
+        .collect::<Vec<String>>()
+        .join(" ");
+
+    println!("{}", args);
 
     ValueType::Variable(PrimitiveTypes::Undefined)
 }

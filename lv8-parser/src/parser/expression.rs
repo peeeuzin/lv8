@@ -1,9 +1,10 @@
 use pest::{iterators::Pair, pratt_parser::PrattParser};
 
 use super::{
-    ComparisonExpression, ComparisonOperation, Expression, MathExpression, MathOperation, Rule,
+    ComparisonExpression, ComparisonOperation, Expression, LogicExpression, MathExpression,
+    MathOperation, Rule,
 };
-use crate::{error::Result, Either, LogicExpression};
+use crate::{error::Result, Either};
 
 lazy_static::lazy_static! {
     static ref MATH_PRATT_PARSER: PrattParser<Rule> = {
@@ -25,17 +26,16 @@ lazy_static::lazy_static! {
 
         // Precedence is defined lowest to highest
         PrattParser::new()
-        .op(
-        Op::infix(Rule::greather_eq, Left)
-        | Op::infix(Rule::less_eq, Left)
-        | Op::infix(Rule::greather, Left)
-        | Op::infix(Rule::less, Left)
-        | Op::infix(Rule::equal, Left)
-        | Op::infix(Rule::not_equal, Left)
-        | Op::infix(Rule::and, Left)
-        | Op::infix(Rule::or, Left)
-    )
+        .op(Op::infix(Rule::and, Left) | Op::infix(Rule::or, Left))
         .op(Op::prefix(Rule::not))
+        .op(
+            Op::infix(Rule::greather_eq, Left)
+            | Op::infix(Rule::less_eq, Left)
+            | Op::infix(Rule::greather, Left)
+            | Op::infix(Rule::less, Left)
+            | Op::infix(Rule::equal, Left)
+            | Op::infix(Rule::not_equal, Left)
+        )
     };
 }
 

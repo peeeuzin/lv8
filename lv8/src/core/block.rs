@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use super::{
     scope::{self, Scope, ValueType},
     statement,
@@ -7,11 +9,11 @@ use lv8_parser::Block as BlockAST;
 #[derive(Clone, Debug)]
 pub struct Block {
     block: BlockAST,
-    pub scope: Scope,
+    pub scope: Rc<RefCell<Scope>>,
 }
 
 impl Block {
-    pub fn new(block: BlockAST, scope: Scope) -> Self {
+    pub fn new(block: BlockAST, scope: Rc<RefCell<Scope>>) -> Self {
         Self { block, scope }
     }
 
@@ -31,11 +33,11 @@ impl Block {
         }
     }
 
-    pub fn call(mut self) -> ValueType {
+    pub fn call(self) -> ValueType {
         let statements = &self.block.0;
 
         for statement in statements {
-            statement::run_statement(&mut self.scope, statement);
+            statement::run_statement(&self.scope, statement);
         }
 
         self.return_type()

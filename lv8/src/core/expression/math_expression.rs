@@ -1,10 +1,15 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::core::{
     scope::{self, Scope},
     PrimitiveTypes,
 };
 use lv8_parser::{Either, MathExpression, MathOperation};
 
-pub fn evaluate_math_expression(scope: &Scope, math_expression: MathExpression) -> PrimitiveTypes {
+pub fn evaluate_math_expression(
+    scope: &Rc<RefCell<Scope>>,
+    math_expression: MathExpression,
+) -> PrimitiveTypes {
     match math_expression {
         MathExpression::Number(value) => PrimitiveTypes::Number(value),
         MathExpression::Operation {

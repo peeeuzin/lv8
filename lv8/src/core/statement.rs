@@ -1,14 +1,13 @@
+use std::{cell::RefCell, rc::Rc};
+
 use lv8_parser::{Either, Statement as StatementAST};
 
 use super::{
-    block::Block,
-    expression::value_to_bool,
-    function,
+    flow_control, function,
     scope::{self, Scope, ValueType},
-    PrimitiveTypes,
 };
 
-pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
+pub fn run_statement(scope: &Rc<RefCell<Scope>>, statement: &StatementAST) -> ValueType {
     match statement {
         StatementAST::Assignment { left, right } => {
             let value = match right {
@@ -17,7 +16,7 @@ pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
             };
 
             for variables in left {
-                scope.set_variable(variables.to_string(), value.clone());
+                scope.borrow_mut().set(variables, value.clone());
             }
 
             value
@@ -35,26 +34,9 @@ pub fn run_statement(scope: &mut Scope, statement: &StatementAST) -> ValueType {
             body,
             else_if,
             else_body,
-        } => {
-            let condition = scope::expression_to_value(scope, condition);
-
-            if value_to_bool(condition) {
-                Block::new(body.clone(), scope.clone()).call()
-            } else {
-                for (condition, block) in else_if {
-                    let condition = scope::expression_to_value(scope, condition);
-
-                    if value_to_bool(condition) {
-                        return Block::new(block.clone(), scope.clone()).call();
-                    }
-                }
-
-                if let Some(else_body) = else_body {
-                    Block::new(else_body.clone(), scope.clone()).call()
-                } else {
-                    ValueType::Variable(PrimitiveTypes::Undefined)
-                }
-            }
+        } => flow_control::if_statement(scope, (condition, body), else_if, else_body),
+        StatementAST::While { condition, body } => {
+            flow_control::while_statement(scope, condition, body)
         }
     }
 }

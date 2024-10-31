@@ -129,6 +129,17 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             })
         }
 
+        Rule::while_statement => {
+            let mut pairs = pair.into_inner();
+
+            let condition =
+                super::expression::parse(pairs.next().unwrap().into_inner().next().unwrap())?;
+
+            let body = super::parse_block(pairs.next().unwrap())?;
+
+            Ok(Statement::While { condition, body })
+        }
+
         _ => unreachable!("unreachable!() in statement.rs, {:?}", pair.as_rule()),
     }
 }

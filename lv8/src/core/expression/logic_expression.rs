@@ -1,4 +1,4 @@
-use std::ops;
+use std::{cell::RefCell, ops, rc::Rc};
 
 use lv8_parser::LogicExpression as LogicExpressionAST;
 
@@ -7,7 +7,10 @@ use crate::core::{
     PrimitiveTypes,
 };
 
-pub fn evaluate_logic_expression(scope: &Scope, logic_expression: LogicExpressionAST) -> bool {
+pub fn evaluate_logic_expression(
+    scope: &Rc<RefCell<Scope>>,
+    logic_expression: LogicExpressionAST,
+) -> bool {
     match logic_expression {
         LogicExpressionAST::Boolean(value) => value,
         LogicExpressionAST::And { left, right } => {

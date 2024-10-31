@@ -1,5 +1,9 @@
 use lv8_parser::{Block as BlockAST, Either, Expression as ExpressionAST, Statement};
-use std::fmt;
+use std::{
+    cell::RefCell,
+    fmt::{self, Debug},
+    rc::Rc,
+};
 
 use super::{
     block::Block,
@@ -7,7 +11,7 @@ use super::{
     PrimitiveTypes,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Function {
     name: String,
     body: Block,
@@ -33,7 +37,7 @@ impl Function {
                 .next()
                 .unwrap_or(ValueType::Variable(PrimitiveTypes::Undefined));
 
-            scope.set_variable(expected_parameter.clone(), parameter);
+            scope.borrow_mut().set(expected_parameter, parameter);
         }
 
         self.body.call()
@@ -41,11 +45,11 @@ impl Function {
 }
 
 pub fn handle_function_call(
-    scope: &mut Scope,
+    scope: &Rc<RefCell<Scope>>,
     function_name: &str,
     arguments: &[Either<ExpressionAST, Statement>],
 ) -> ValueType {
-    let function = scope.get_variable(function_name).cloned();
+    let function = scope.borrow().get(function_name);
 
     let args = arguments
         .iter()
@@ -69,22 +73,29 @@ pub fn handle_function_call(
 }
 
 pub fn handle_function_definition(
-    scope: &mut Scope,
+    scope: &Rc<RefCell<Scope>>,
     name: &str,
     parameters: &[String],
     body: &BlockAST,
 ) -> ValueType {
-    let new_function_scope = scope.clone();
-
-    let body = Block::new(body.clone(), new_function_scope);
+    let new_function_scope = Scope::with_parent(&format!("func_{}", name), scope.clone());
+    let body = Block::new(body.clone(), Rc::new(RefCell::new(new_function_scope)));
 
     let function = Function::new(name.to_string(), body, parameters.to_vec());
-    scope.set_variable(name.to_string(), scope::ValueType::Function(function));
+    scope
+        .borrow_mut()
+        .set(name, scope::ValueType::Function(function));
 
     scope::ValueType::Variable(PrimitiveTypes::Undefined)
 }
 
 impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<<function {}>>", self.name)
+    }
+}
+
+impl Debug for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<<function {}>>", self.name)
     }

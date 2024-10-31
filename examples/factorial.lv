@@ -1,0 +1,12 @@
+fun factorial(n) do
+    fact = 1
+
+    while (n > 1) do
+        fact = fact * n
+        n = n - 1
+    end
+
+    return fact
+end
+
+printl(factorial(5))

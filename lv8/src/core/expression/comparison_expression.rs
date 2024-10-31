@@ -1,9 +1,11 @@
+use std::{cell::RefCell, rc::Rc};
+
 use lv8_parser::{ComparisonExpression as ComparisonExpressionAST, ComparisonOperation};
 
 use crate::core::scope::{expression_to_value, Scope};
 
 pub fn evaluate_comparison_expression(
-    scope: &Scope,
+    scope: &Rc<RefCell<Scope>>,
     comparision_expression: ComparisonExpressionAST,
 ) -> bool {
     let left = expression_to_value(scope, &comparision_expression.left);

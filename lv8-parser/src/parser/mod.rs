@@ -43,6 +43,10 @@ pub enum Statement {
         else_if: Vec<(Expression, Block)>,
         else_body: Option<Block>,
     },
+    While {
+        condition: Expression,
+        body: Block,
+    },
 }
 
 #[derive(Clone, Debug)]
