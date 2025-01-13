@@ -10,6 +10,9 @@ block = {
 
 stmt = {
   
+  | module_def // | class_def
+
+  | import_statement
   | while_statement
   | if_statement
   | assign
@@ -19,12 +22,12 @@ stmt = {
 
 stmt_or_expr = _{ stmt | expr }
 
-var_list = {
+ident_list = {
     ident ~ ("," ~ ident)*
 }
 
 assign = {
-    var_list ~ "=" ~ stmt_or_expr
+    ident_list ~ "=" ~ stmt_or_expr
 }
 
 expr = {
@@ -36,11 +39,8 @@ expr = {
   | string
   | object
   | array
+  | namespace
   | ident
-}
-
-name_list = {
-    ident ~ ("," ~ ident)*
 }
 
 return_statement = {
@@ -50,11 +50,11 @@ return_statement = {
 }
 
 function_call = {
-    (ident ~ "(" ~ (stmt_or_expr ~ ("," ~ stmt_or_expr)*)? ~ ")")
+    ((namespace | ident) ~ "(" ~ (stmt_or_expr ~ ("," ~ stmt_or_expr)*)? ~ ")")
 }
 
 function_def = {
-    "fun" ~ ident ~ "(" ~ (name_list)? ~ ")" ~ "do" ~ block ~ "end"
+    "fun" ~ ident ~ "(" ~ (ident_list)? ~ ")" ~ "do" ~ block ~ "end"
 }
 
 if_statement = {
@@ -63,6 +63,18 @@ if_statement = {
 
 while_statement = {
     "while" ~ logic_expr ~ "do" ~ block ~ "end"
+}
+
+import_statement = {
+    "import" ~ string ~ "as" ~ ident
+}
+
+// class_def = {
+// "class" ~ ident ~ "do" ~ (function_def)* ~ "end"
+// }
+
+module_def = {
+    "module" ~ ident ~ "do" ~ block ~ "end"
 }
 
 // values
@@ -92,9 +104,10 @@ array     =  {
     "[" ~ "]"
   | "[" ~ expr ~ ("," ~ expr)* ~ "]"
 }
-ident     = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+ident     = @{ "_"*? ~ (ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")*) }
+namespace =  { ident ~ ("." ~ ident)+ }
 
-math_expr      =  { (("(" ~ math_expr ~ ")") | number | ident) ~ (math_op ~ (("(" ~ math_expr ~ ")") | number | ident))+ }
+math_expr      =  { (("(" ~ math_expr ~ ")") | number | ident | namespace) ~ (math_op ~ (("(" ~ math_expr ~ ")") | number | ident | namespace))+ }
 math_op        = _{ modulus | exponentiation | floor_div | add | subtract | multiply | divide }
 add            =  { "+" }
 subtract       =  { "-" }

@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-lv8-parser = { version = "*", path = "../lv8-parser" }
+lv8_common = { version = "*", path = "../lv8_common" }
+lv8_parser = { version = "*", path = "../lv8_parser" }
 owo-colors = "3"
 clap = { version = "4.5.4", features = ["derive"] }
 rustyline = "14.0.0"

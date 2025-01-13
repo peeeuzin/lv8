@@ -1,3 +1,4 @@
+use lv8_common::error::{Error, Result};
 use lv8_parser::{Block as BlockAST, Either, Expression as ExpressionAST, Statement};
 use std::{
     cell::RefCell,
@@ -8,7 +9,7 @@ use std::{
 use super::{
     block::Block,
     scope::{self, Scope, ValueType},
-    PrimitiveTypes,
+    Metadata, PrimitiveTypes,
 };
 
 #[derive(Clone)]
@@ -27,7 +28,7 @@ impl Function {
         }
     }
 
-    pub fn call(mut self, parameters: Vec<ValueType>) -> ValueType {
+    pub fn call(mut self, parameters: Vec<ValueType>) -> Result<ValueType> {
         let scope = &mut self.body.scope;
 
         let mut parameters = parameters.into_iter();
@@ -46,29 +47,29 @@ impl Function {
 
 pub fn handle_function_call(
     scope: &Rc<RefCell<Scope>>,
-    function_name: &str,
+    expression: &ExpressionAST,
     arguments: &[Either<ExpressionAST, Statement>],
-) -> ValueType {
-    let function = scope.borrow().get(function_name);
+    metadata: &Rc<Metadata>,
+) -> Result<ValueType> {
+    let function = scope::evaluate_expression(scope, expression)?;
 
-    let args = arguments
-        .iter()
-        .map(|x| match x {
-            Either::Left(expression) => scope::expression_to_value(scope, expression),
-            Either::Right(statement) => super::statement::run_statement(scope, statement),
-        })
-        .collect::<Vec<scope::ValueType>>();
+    let mut args = Vec::new();
 
-    if function.is_none() {
-        panic!("Function not found: {}", function_name);
+    for argument in arguments {
+        let argument = match argument {
+            Either::Left(expression) => scope::evaluate_expression(scope, expression)?,
+            Either::Right(statement) => {
+                super::statement::run_statement(scope, statement, metadata)?
+            }
+        };
+
+        args.push(argument);
     }
 
-    match function.unwrap() {
+    match function {
         ValueType::Function(function) => function.call(args),
-        ValueType::InternalFunction(function) => function(args),
-        _ => {
-            panic!("{} is not a function", function_name);
-        }
+        ValueType::InternalFunction(function) => Ok(function(args)),
+        _ => Err(Error::r#type(&format!("{} is not a function", function))),
     }
 }
 
@@ -77,9 +78,14 @@ pub fn handle_function_definition(
     name: &str,
     parameters: &[String],
     body: &BlockAST,
+    metadata: &Rc<Metadata>,
 ) -> ValueType {
     let new_function_scope = Scope::with_parent(&format!("func_{}", name), scope.clone());
-    let body = Block::new(body.clone(), Rc::new(RefCell::new(new_function_scope)));
+    let body = Block::new(
+        body.clone(),
+        Rc::new(RefCell::new(new_function_scope)),
+        metadata.clone(),
+    );
 
     let function = Function::new(name.to_string(), body, parameters.to_vec());
     scope

@@ -248,16 +248,22 @@ name = "lv8"
 version = "0.1.0"
 dependencies = [
  "clap",
- "lv8-parser",
+ "lv8_common",
+ "lv8_parser",
  "owo-colors",
  "rustyline",
 ]
 
 [[package]]
-name = "lv8-parser"
+name = "lv8_common"
+version = "0.1.0"
+
+[[package]]
+name = "lv8_parser"
 version = "0.1.0"
 dependencies = [
  "lazy_static",
+ "lv8_common",
  "pest",
  "pest_derive",
 ]

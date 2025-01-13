@@ -1,9 +1,10 @@
 [package]
-name = "lv8-parser"
+name = "lv8_parser"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+lv8_common = { version = "*", path = "../lv8_common" }
 pest = "2.7.9"
 pest_derive = "2.7.9"
 lazy_static = "1.4.0"

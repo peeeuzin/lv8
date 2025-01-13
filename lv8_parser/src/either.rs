@@ -15,7 +15,7 @@ impl<L: Debug, R: Debug> Debug for Either<L, R> {
     }
 }
 
-impl ops::Add for Either<i64, f64> {
+impl ops::Add for Either<isize, f64> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -28,7 +28,7 @@ impl ops::Add for Either<i64, f64> {
     }
 }
 
-impl ops::Sub for Either<i64, f64> {
+impl ops::Sub for Either<isize, f64> {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
@@ -41,7 +41,7 @@ impl ops::Sub for Either<i64, f64> {
     }
 }
 
-impl ops::Mul for Either<i64, f64> {
+impl ops::Mul for Either<isize, f64> {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self {
@@ -54,7 +54,7 @@ impl ops::Mul for Either<i64, f64> {
     }
 }
 
-impl ops::Div for Either<i64, f64> {
+impl ops::Div for Either<isize, f64> {
     type Output = Self;
 
     fn div(self, other: Self) -> Self {
@@ -67,7 +67,7 @@ impl ops::Div for Either<i64, f64> {
     }
 }
 
-impl ops::Rem for Either<i64, f64> {
+impl ops::Rem for Either<isize, f64> {
     type Output = Self;
 
     fn rem(self, other: Self) -> Self {

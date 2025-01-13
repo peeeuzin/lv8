@@ -7,12 +7,12 @@ LV8 (pronounced "levieight") is interpreted dynamically typed programming langua
 - [x] ~~Function calls~~
 - [x] ~~Math expressions~~
 - [x] ~~Comments~~
+- [x] ~~Modules~~
+- [x] ~~Imports~~
 - [ ] Flow control (if, else, while, for) (Currently only `if` statement is available)
 - [ ] Standard library (Currently only `print` function is available)
 - [ ] Garbage collection
 - [ ] Error handling
-- [ ] Structs
-- [ ] Enums 
 
 # 🚨 Warning
 This language is not meant to be used in production, it is just a fun project to learn how to make a programming language.
@@ -79,7 +79,7 @@ value1, value2 = "Hello!"
 ```
 
 ## Functions
-Functions in LV8 are defined using the `fun` keyword, follow by the function name and the parameters. The function body is defined using the `do` keyword, and ended with the `end` keyword.
+Functions in LV8 are defined using the `fun` keyword, followed by the function name and the parameters. The function body is defined using the `do` keyword, and ended with the `end` keyword.
 ```lv8
 fun my_function() do
   print("Hello, World!")
@@ -94,6 +94,47 @@ fun calculate_sum(a, b) do
 end
 
 print(calculate_sum(2, 3))
+```
+
+## Modules
+You can declare a module using `module` keyword, followed by the module name. The module body is defined using the `do` keyword, and ended with the `end` keyword.
+```lv8
+module Human do
+  my_name = ""
+  age = 0
+
+  fun declare_name(new_name) do
+    my_name = new_name
+  end
+
+  fun increase_age() do 
+    age = age + 1
+  end
+end
+
+Human.increase_age()
+Human.declare_name("Pedro")
+
+# or
+
+Human.my_name = "John"
+```
+
+## Imports
+To import another file you can use `import`, followed by file path and the module name.
+
+```lv8
+# math.lv8
+
+fun complex_calculation(num1, num2) do
+  return num1 + num2
+end
+```
+
+```lv8
+import "math.lv8" as Math
+
+Math.complex_calculation(1, 2)
 ```
 
 

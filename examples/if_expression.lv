@@ -3,5 +3,5 @@ prompt = input()
 if (prompt is "Pedro") do
     printl("Hello Pedro!")
 else
-    printl("Hello stranger!")
+    printl("Stranger danger!")
 end

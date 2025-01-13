@@ -4,8 +4,10 @@ use std::fmt;
 use std::rc::Rc;
 use std::{collections::HashMap, fmt::Debug};
 
+use lv8_common::error::{Error, Result};
 use lv8_parser::Expression as ExpressionAST;
 
+use super::module::Module;
 use super::{expression::Expression, function::Function, PrimitiveTypes};
 
 #[derive(Clone, PartialEq, PartialOrd)]
@@ -13,6 +15,7 @@ pub enum ValueType {
     Function(Function),
     Variable(PrimitiveTypes),
     InternalFunction(fn(Vec<ValueType>) -> ValueType),
+    Module(Module),
 }
 
 impl fmt::Display for ValueType {
@@ -22,6 +25,9 @@ impl fmt::Display for ValueType {
             ValueType::Variable(value) => write!(f, "{}", value),
             ValueType::InternalFunction(func) => {
                 write!(f, "<<internal function {:?}>>", &func as *const _)
+            }
+            ValueType::Module(module) => {
+                write!(f, "<<module {}>>", module.name)
             }
         }
     }
@@ -37,6 +43,13 @@ impl Debug for ValueType {
                     f,
                     "{}",
                     format!("<<internal function {:?}>>", &func as *const _).bright_magenta()
+                )
+            }
+            ValueType::Module(module) => {
+                write!(
+                    f,
+                    "{}",
+                    format!("<<module {}>>", module.name).bright_purple()
                 )
             }
         }
@@ -70,8 +83,13 @@ impl Scope {
     pub fn set(&mut self, name: &str, value: ValueType) {
         match self.variables.get_mut(name) {
             Some(variable) => *variable = value,
-            None => match &mut self.parent {
-                Some(parent) => parent.borrow_mut().set(name, value),
+            None => match self.parent {
+                Some(ref parent) => match parent.borrow_mut().variables.get_mut(name) {
+                    Some(variable) => *variable = value,
+                    None => {
+                        self.variables.insert(name.to_owned(), value);
+                    }
+                },
                 None => {
                     self.variables.insert(name.to_owned(), value);
                 }
@@ -94,19 +112,22 @@ impl Scope {
     }
 }
 
-pub fn expression_to_value(scope: &Rc<RefCell<Scope>>, expression: &ExpressionAST) -> ValueType {
+pub fn evaluate_expression(
+    scope: &Rc<RefCell<Scope>>,
+    expression: &ExpressionAST,
+) -> Result<ValueType> {
     let value = match expression {
         ExpressionAST::Identifier(ref identifier) => scope.borrow().get(identifier),
-        _ => Some(ValueType::Variable(Expression::parse_expression(
-            scope,
-            expression.clone(),
-        ))),
+        _ => Some(Expression::parse_expression(scope, expression.clone())?),
     };
 
     if let Some(value) = value {
-        value
+        Ok(value)
     } else {
-        panic!("Variable not found: {:?}", expression);
+        Err(Error::reference(&format!(
+            "{:?} variable not found",
+            expression
+        )))
     }
 }
 

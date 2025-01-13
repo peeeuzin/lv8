@@ -1,31 +1,36 @@
 use std::{cell::RefCell, ops, rc::Rc};
 
+use lv8_common::error::Result;
 use lv8_parser::LogicExpression as LogicExpressionAST;
 
 use crate::core::{
-    scope::{expression_to_value, Scope, ValueType},
+    scope::{evaluate_expression, Scope, ValueType},
     PrimitiveTypes,
 };
 
 pub fn evaluate_logic_expression(
     scope: &Rc<RefCell<Scope>>,
     logic_expression: LogicExpressionAST,
-) -> bool {
+) -> Result<bool> {
     match logic_expression {
-        LogicExpressionAST::Boolean(value) => value,
+        LogicExpressionAST::Boolean(value) => Ok(value),
         LogicExpressionAST::And { left, right } => {
-            let left = expression_to_value(scope, &left);
-            let right = expression_to_value(scope, &right);
+            let left = evaluate_expression(scope, &left)?;
+            let right = evaluate_expression(scope, &right)?;
 
-            left & right
+            Ok(left & right)
         }
         LogicExpressionAST::Or { left, right } => {
-            let left = expression_to_value(scope, &left);
-            let right = expression_to_value(scope, &right);
+            let left = evaluate_expression(scope, &left)?;
+            let right = evaluate_expression(scope, &right)?;
 
-            left | right
+            Ok(left | right)
         }
-        LogicExpressionAST::Not { expr } => !expression_to_value(scope, &expr),
+        LogicExpressionAST::Not { expr } => {
+            let expr = evaluate_expression(scope, &expr)?;
+
+            Ok(!expr)
+        }
     }
 }
 
@@ -58,6 +63,7 @@ pub fn value_to_bool(value: ValueType) -> bool {
         ValueType::Variable(value) => primitive_types_to_bool(value),
         ValueType::Function(_) => true,
         ValueType::InternalFunction(_) => true,
+        ValueType::Module(_) => true,
     }
 }
 

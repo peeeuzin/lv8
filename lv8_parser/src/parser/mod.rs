@@ -1,14 +1,11 @@
 mod expression;
 mod statement;
 
+use pest::{error::LineColLocation, iterators::Pair, Parser};
 use std::collections::HashMap;
 
-use pest::{iterators::Pair, Parser};
-
-use crate::{
-    error::{GrammarError, Result},
-    Either,
-};
+use crate::Either;
+use lv8_common::error::{Error, Result, SyntaxError};
 
 #[derive(pest_derive::Parser)]
 #[grammar = "grammar/lv8.pest"]
@@ -34,8 +31,12 @@ pub enum Statement {
         body: Block,
     },
     FunctionCall {
-        name: String,
+        expression: Expression,
         arguments: Vec<Either<Expression, Statement>>,
+    },
+    ModuleDefinition {
+        name: String,
+        body: Block,
     },
     If {
         condition: Expression,
@@ -47,6 +48,10 @@ pub enum Statement {
         condition: Expression,
         body: Block,
     },
+    Import {
+        path: String,
+        ident: String,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -54,11 +59,12 @@ pub enum Expression {
     Null,
     Undefined,
     Boolean(bool),
-    Number(Either<i64, f64>),
+    Number(Either<isize, f64>),
     String(String),
     Object(HashMap<String, Expression>),
     Array(Vec<Expression>),
     Identifier(String),
+    Namespace(Vec<String>),
     MathExpression(MathExpression),
     LogicExpression(LogicExpression),
     ComparisonExpression(ComparisonExpression),
@@ -66,7 +72,7 @@ pub enum Expression {
 
 #[derive(Clone, Debug)]
 pub enum MathExpression {
-    Number(Either<i64, f64>),
+    Number(Either<isize, f64>),
     Operation {
         left: Box<Expression>,
         operation: MathOperation,
@@ -128,7 +134,15 @@ pub fn parse(input: &str) -> Result<ASTNode> {
     let mut pairs = match LV8Parser::parse(Rule::program, input) {
         Ok(e) => e,
         Err(e) => {
-            return Err(GrammarError::with_message(&e.to_string()));
+            let (line, column) = match e.line_col {
+                LineColLocation::Pos((line, column)) => (line, column),
+                LineColLocation::Span((line, column), _) => (line, column),
+            };
+
+            return Err(Error::syntax(
+                e.variant.to_string().as_str(),
+                SyntaxError::new(e.line(), line, column),
+            ));
         }
     };
 

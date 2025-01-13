@@ -2,9 +2,9 @@ use pest::iterators::Pair;
 
 use crate::Either;
 
-use super::{Rule, Statement};
+use super::{expression, Rule, Statement};
 
-use crate::error::Result;
+use lv8_common::error::Result;
 
 pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
     match pair.as_rule() {
@@ -34,8 +34,8 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
         Rule::function_call => {
             let mut inner = pair.into_inner();
 
-            let name = inner.next().unwrap();
-            let name = name.as_str().to_string();
+            let expression = inner.next().unwrap();
+            let expression = expression::parse(expression)?;
 
             let mut args = Vec::new();
 
@@ -52,7 +52,7 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             }
 
             Ok(Statement::FunctionCall {
-                name,
+                expression,
                 arguments: args,
             })
         }
@@ -67,7 +67,7 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             let body_or_params = pairs.next().unwrap();
 
             let body = match body_or_params.as_rule() {
-                Rule::name_list => {
+                Rule::ident_list => {
                     params = body_or_params
                         .into_inner()
                         .map(|x| x.as_str().to_string())
@@ -138,6 +138,31 @@ pub fn parse(pair: Pair<Rule>) -> Result<Statement> {
             let body = super::parse_block(pairs.next().unwrap())?;
 
             Ok(Statement::While { condition, body })
+        }
+
+        Rule::module_def => {
+            let mut pairs = pair.into_inner();
+
+            let name = pairs.next().unwrap().as_str().to_string();
+            let body = super::parse_block(pairs.next().unwrap())?;
+
+            Ok(Statement::ModuleDefinition { name, body })
+        }
+
+        Rule::import_statement => {
+            let mut pairs = pair.into_inner();
+
+            let path = pairs
+                .next()
+                .unwrap()
+                .into_inner()
+                .next()
+                .unwrap()
+                .as_str()
+                .to_string();
+            let ident = pairs.next().unwrap().as_str().to_string();
+
+            Ok(Statement::Import { path, ident })
         }
 
         _ => unreachable!("unreachable!() in statement.rs, {:?}", pair.as_rule()),

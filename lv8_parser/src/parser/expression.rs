@@ -4,7 +4,8 @@ use super::{
     ComparisonExpression, ComparisonOperation, Expression, LogicExpression, MathExpression,
     MathOperation, Rule,
 };
-use crate::{error::Result, Either};
+use crate::Either;
+use lv8_common::error::Result;
 
 lazy_static::lazy_static! {
     static ref MATH_PRATT_PARSER: PrattParser<Rule> = {
@@ -104,6 +105,16 @@ pub fn parse(pair: Pair<Rule>) -> Result<Expression> {
         Rule::math_expr => parse_math_expression(pair),
 
         Rule::logic_expr => parse_logic_expression(pair),
+
+        Rule::namespace => {
+            let mut namespace = Vec::new();
+
+            for pair in pair.into_inner() {
+                namespace.push(pair.as_str().to_string());
+            }
+
+            Ok(Expression::Namespace(namespace))
+        }
 
         _ => unreachable!("unreachable!() in expression.rs, {:?}", pair.as_rule()),
     }
